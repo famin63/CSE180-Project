@@ -14,16 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <rclcpp/rclcpp.hpp> 
+#include <rclcpp/rclcpp.hpp>
 #include <navigation/navigation.hpp>
+#include <sensor_msgs/msg/laser_scan.hpp>
 #include <iostream>
 
+// callback function for the laser scan data
+void laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan_data) {
+  // process the laser scan data here
+}
 
-
-int main(int argc,char **argv) {
- 
-  rclcpp::init(argc,argv); // initialize ROS 
-  Navigator navigator(true,false); // create node with debug info but not verbose
+int main(int argc, char **argv) {
+  rclcpp::init(argc, argv); // initialize ROS
+  Navigator navigator(true, false); // create node with debug info but not verbose
 
   // first: it is mandatory to initialize the pose of the robot
   geometry_msgs::msg::Pose::SharedPtr init = std::make_shared<geometry_msgs::msg::Pose>();
@@ -31,38 +34,44 @@ int main(int argc,char **argv) {
   init->position.y = -0.5;
   init->orientation.w = 1;
   navigator.SetInitialPose(init);
-  // wait for navigation stack to become operationale
+
+  // wait for navigation stack to become operational
   navigator.WaitUntilNav2Active();
+
+  // subscribe to the laser scan data
+  auto laser_sub = navigator.create_subscription<sensor_msgs::msg::LaserScan>(
+    "/scan", 10, laserCallback);
+
   // spin in place of 90 degrees (default parameter)
   navigator.Spin();
-  while ( ! navigator.IsTaskComplete() ) {
+  while (!navigator.IsTaskComplete()) {
     // busy waiting for task to be completed
   }
-  geometry_msgs::msg::Pose::SharedPtr goal_pos = std::make_shared<geometry_msgs::msg::Pose>();
-  goal_pos->position.x = 2;
-  goal_pos->position.y = 1;
-  goal_pos->orientation.w = 1;
-  // move to new pose
-  navigator.GoToPose(goal_pos);
-  while ( ! navigator.IsTaskComplete() ) {
-    
+
+  geometry_msgs::msg::Pose::SharedPtr goal_post = std::make_shared<geometry_msgs::msg::Pose>();
+  for (float y = 1.5; y >= -1.5; y--) {
+    for (float x = -2; x <= 2; x++) {
+      goal_post->position.x = x;
+      goal_post->position.y = y;
+      goal_post->orientation.w = 1;
+      // move to new pose
+      navigator.GoToPose(goal_post);
+      while (!navigator.IsTaskComplete()) {
+        // busy waiting for task to be completed
+      }
+    }
   }
-  goal_pos->position.x = 2;
-  goal_pos->position.y = -1;
-  goal_pos->orientation.w = 1;
-  navigator.GoToPose(goal_pos);
-  // move to new pose
-  while ( ! navigator.IsTaskComplete() ) {
-    
-  }
-  // backup of 0.15 m (deafult distance)
+
+  // backup of 0.15 m (default distance)
   navigator.Backup();
-  while ( ! navigator.IsTaskComplete() ) {
-    
+  while (!navigator.IsTaskComplete()) {
+    // busy waiting for task to be completed
   }
 
   // complete here....
-  
+
+  rclcpp::spin_some(navigator.get_node_base_interface());
   rclcpp::shutdown(); // shutdown ROS
   return 0;
 }
+
