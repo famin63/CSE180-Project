@@ -137,7 +137,7 @@ int main(int argc, char **argv) {
     "/scan", 10,
     [&](const sensor_msgs::msg::LaserScan::SharedPtr scan_msg) {
       // Call laser callback function
-      laserCallback(scan_msg, navigator, navigator.GetMap());
+      laserCallback(scan_msg, navigator, navigator.GetMap(), amcl_pose);
     });
 
   // Spin the node
