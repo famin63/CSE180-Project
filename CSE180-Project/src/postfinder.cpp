@@ -17,11 +17,13 @@ limitations under the License.
 #include <rclcpp/rclcpp.hpp> 
 #include <navigation/navigation.hpp>
 #include <iostream>
+#include <sensor_msgs/msg/laser_scan.hpp>
+#include <std_msgs/msg/float32.hpp>
 
 class FindClosest : public rclcpp::Node 
 {
   public:
-    FindClosest():Node("pubsubstl")
+    FindClosest():Node("find_closest")
     {
       pubf = this->create_publisher<std_msgs::msg::Float32>("closest", 1000);
       sub = this->create_subscription<sensor_msgs::msg::LaserScan>
@@ -51,19 +53,19 @@ class FindClosest : public rclcpp::Node
     rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr subscription_;
 };
 
-void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
-        RCLCPP_INFO(nodeh->get_logger(),"Size of Map: %d", msg->data.size());
-        RCLCPP_INFO(nodeh->get_logger(), "Resolution: %f", msg->info.resolution());
-        RCLCPP_INFO(nodeh->get_logger(), "Width: %d", msg->info.width());
-        RCLCPP_INFO(nodeh->get_logger(), "Height: %d", msg->info.height());
+// void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
+//         RCLCPP_INFO(nodeh->get_logger(),"Size of Map: %d", msg->data.size());
+//         RCLCPP_INFO(nodeh->get_logger(), "Resolution: %f", msg->info.resolution());
+//         RCLCPP_INFO(nodeh->get_logger(), "Width: %d", msg->info.width());
+//         RCLCPP_INFO(nodeh->get_logger(), "Height: %d", msg->info.height());
     
-        uint counter = 0;
-        for (uint i = 0; i < msg->data.size(); i++) {
-            if (-1 != msg->data[i]) {
-                counter++;
-            }
-        }
-}
+//         uint counter = 0;
+//         for (uint i = 0; i < msg->data.size(); i++) {
+//             if (-1 != msg->data[i]) {
+//                 counter++;
+//             }
+//         }
+// }
 
 int main(int argc,char **argv) {
  
@@ -98,22 +100,8 @@ int main(int argc,char **argv) {
   navigator.GoToPose(goal_pos);
   // move to new pose
   while ( ! navigator.IsTaskComplete() ) {
-    rclcpp::spin(std::make_shared<FindClosest>());
-  }
-  goal_pose = []
-  goal_pos = PoseStamped()
-  goal_pos.header.frame_id = 'map'
-  goal_pos.header.stamp = navigator.get_clock().now().to_msg()
-  goal_pos->position.x = 2;
-  goal_pos->position.y = -1;
-  goal_pos->orientation.w = 1;
-  goal_pose.append(goal_pos)
-  navigator.GoToPose(goal_pose);
-    
-  while ( ! navigator.IsTaskComplete() ) {
     
   }
-    
   // backup of 0.15 m (deafult distance)
   navigator.Backup();
   while ( ! navigator.IsTaskComplete() ) {
