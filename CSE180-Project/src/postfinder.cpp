@@ -52,10 +52,10 @@ class FindClosest : public rclcpp::Node
 };
 
 void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
-        RCCLP_INFO(nodeh->get_logger(),"Size of Map: %d", msg->data.size());
-        RCCLP_INFO(nodeh->get_logger(), "Resolution: %f", msg->info.resolution());
-        RCCLP_INFO(nodeh->get_logger(), "Width: %d", msg->info.width());
-        RCCLP_INFO(nodeh->get_logger(), "Height: %d", msg->info.height());
+        RCLCPP_INFO(nodeh->get_logger(),"Size of Map: %d", msg->data.size());
+        RCLCPP_INFO(nodeh->get_logger(), "Resolution: %f", msg->info.resolution());
+        RCLCPP_INFO(nodeh->get_logger(), "Width: %d", msg->info.width());
+        RCLCPP_INFO(nodeh->get_logger(), "Height: %d", msg->info.height());
     
         uint counter = 0;
         for (uint i = 0; i < msg->data.size(); i++) {
@@ -100,6 +100,20 @@ int main(int argc,char **argv) {
   while ( ! navigator.IsTaskComplete() ) {
     rclcpp::spin(std::make_shared<FindClosest>());
   }
+  goal_pose = []
+  goal_pos = PoseStamped()
+  goal_pos.header.frame_id = 'map'
+  goal_pos.header.stamp = navigator.get_clock().now().to_msg()
+  goal_pos->position.x = 2;
+  goal_pos->position.y = -1;
+  goal_pos->orientation.w = 1;
+  goal_pose.append(goal_pos)
+  navigator.GoToPose(goal_pose);
+    
+  while ( ! navigator.IsTaskComplete() ) {
+    
+  }
+    
   // backup of 0.15 m (deafult distance)
   navigator.Backup();
   while ( ! navigator.IsTaskComplete() ) {
