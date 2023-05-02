@@ -18,6 +18,39 @@ limitations under the License.
 #include <navigation/navigation.hpp>
 #include <iostream>
 
+class FindClosest : public rclcpp::Node 
+{
+  public:
+    FindClosest():Node("pubsubstl")
+    {
+      pubf = this->create_publisher<std_msgs::msg::Float32>("closest", 1000);
+      sub = this->create_subscription<sensor_msgs::msg::LaserScan>
+            ("scan", 10, std::bind(&FindClosest::processScan, this, std::placeholders::_1));
+      
+      //added this
+      //changed node to this
+      subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
+        "laser_scan", 10, std::bind(&FindClosest::processScan, this, std::placeholders::_1));
+    }
+  private:
+    void processScan(const sensor_msgs::msg::LaserScan::SharedPtr msg) 
+    {
+      std::vector<float>::const_iterator minval = min(msg->ranges.begin(), msg->ranges.end());
+      std_msgs::msg::Float32 msg_to_send;
+      msg_to_send.data = *minval;
+      pubf->publish(msg_to_send); // publish result
+
+      //for loop to output laser scan
+      //added
+      for (size_t i = 0; i < msg->ranges.size(); i++) {
+            RCLCPP_INFO(rclcpp::get_logger("laser_scan"), "Values %d: %f", i, msg->ranges[i]);
+        }
+    }
+    rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr pubf;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr sub;
+    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr subscription_;
+};
+
 void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
         RCCLP_INFO(nodeh->get_logger(),"Size of Map: %d", msg->data.size());
         RCCLP_INFO(nodeh->get_logger(), "Resolution: %f", msg->info.resolution());
@@ -65,7 +98,7 @@ int main(int argc,char **argv) {
   navigator.GoToPose(goal_pos);
   // move to new pose
   while ( ! navigator.IsTaskComplete() ) {
-    
+    rclcpp::spin(std::make_shared<FindClosest>());
   }
   // backup of 0.15 m (deafult distance)
   navigator.Backup();
