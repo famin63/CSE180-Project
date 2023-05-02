@@ -14,44 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/rclcpp.hpp> 
 #include <navigation/navigation.hpp>
-#include <sensor_msgs/msg/laser_scan.hpp>
-#include <geometry_msgs/msg/transform_stamped.hpp>
-#include <nav_msgs/msg/occupancy_grid.hpp>
-#include <tf2_ros/transform_listener.h>
 #include <iostream>
 
-using namespace std;
-
-// global variables
-nav_msgs::msg::OccupancyGrid map_data;
-geometry_msgs::msg::Pose amcl_pose;
-bool amcl_pose_received = false;
-bool map_received = false;
-bool laser_received = false;
-geometry_msgs::msg::TransformStamped laser_tf;
-
-// callback function for the laser scan data
-void laserCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan_data) {
-  laser_received = true;
+void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
+        RCCLP_INFO(nodeh->get_logger(),"Size of Map: %d", msg->data.size());
+        RCCLP_INFO(nodeh->get_logger(), "Resolution: %f", msg->info.resolution());
+        RCCLP_INFO(nodeh->get_logger(), "Width: %d", msg->info.width());
+        RCCLP_INFO(nodeh->get_logger(), "Height: %d", msg->info.height());
+    
+        uint counter = 0;
+        for (uint i = 0; i < msg->data.size(); i++) {
+            if (-1 != msg->data[i]) {
+                counter++;
+            }
+        }
 }
 
-// callback function for the occupancy grid data
-void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr map) {
-  map_data = *map;
-  map_received = true;
-}
-
-// callback function for the AMCL pose
-void amclPoseCallback(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr pose) {
-  amcl_pose = pose->pose.pose;
-  amcl_pose_received = true;
-}
-
-int main(int argc, char **argv) {
-  rclcpp::init(argc, argv); // initialize ROS
-  Navigator navigator(true, false); // create node with debug info but not verbose
+int main(int argc,char **argv) {
+ 
+  rclcpp::init(argc,argv); // initialize ROS 
+  Navigator navigator(true,false); // create node with debug info but not verbose
 
   // first: it is mandatory to initialize the pose of the robot
   geometry_msgs::msg::Pose::SharedPtr init = std::make_shared<geometry_msgs::msg::Pose>();
@@ -59,85 +43,38 @@ int main(int argc, char **argv) {
   init->position.y = -0.5;
   init->orientation.w = 1;
   navigator.SetInitialPose(init);
-
-  // wait for navigation stack to become operational
+  // wait for navigation stack to become operationale
   navigator.WaitUntilNav2Active();
-
-  // subscribe to the laser scan data
-  auto laser_sub = navigator.create_subscription<sensor_msgs::msg::LaserScan>(
-    "/scan", 10, laserCallback);
-
-  // subscribe to the occupancy grid data
-  auto map_sub = navigator.create_subscription<nav_msgs::msg::OccupancyGrid>(
-    "/map", 10, mapCallback);
-
-  // subscribe to the AMCL pose
-  auto amcl_pose_sub = navigator.create_subscription<geometry_msgs::msg::PoseWithCovarianceStamped>(
-    "/amcl_pose", 10, amclPoseCallback);
-
-  // create a transform listener for the laser scan tf
-  tf2_ros::Buffer tf_buffer;
-  tf2_ros::TransformListener tf_listener(tf_buffer);
-
-  // move to initial position
-  while (!navigator.IsTaskComplete()) {
+  // spin in place of 90 degrees (default parameter)
+  navigator.Spin();
+  while ( ! navigator.IsTaskComplete() ) {
     // busy waiting for task to be completed
   }
-
-  // backup of 0.15 m (default distance)
+  geometry_msgs::msg::Pose::SharedPtr goal_pos = std::make_shared<geometry_msgs::msg::Pose>();
+  goal_pos->position.x = 2;
+  goal_pos->position.y = 1;
+  goal_pos->orientation.w = 1;
+  // move to new pose
+  navigator.GoToPose(goal_pos);
+  while ( ! navigator.IsTaskComplete() ) {
+    
+  }
+  goal_pos->position.x = 2;
+  goal_pos->position.y = -1;
+  goal_pos->orientation.w = 1;
+  navigator.GoToPose(goal_pos);
+  // move to new pose
+  while ( ! navigator.IsTaskComplete() ) {
+    
+  }
+  // backup of 0.15 m (deafult distance)
   navigator.Backup();
-  while (!navigator.IsTaskComplete()) {
-    // busy waiting for task to be completed
+  while ( ! navigator.IsTaskComplete() ) {
+    
   }
 
-  // patrol the map
-  while (rclcpp::ok()) {
-    if (!amcl_pose_received || !map_received || !laser_received) {
-      // wait for all the required data to be received
-      rclcpp::spin_some(navigator.get_node_base_interface());
-      continue;
-    }
-
-    // get the laser scan tf
-    try {
-      laser_tf = tf_buffer.lookupTransform("base_link", "laser", tf2::TimePoint());
-    }
-    catch (tf2::TransformException &ex) {
-      RCLCPP_WARN(navigator.get_logger(), "Failed to get laser scan tf: %s", ex.what());
-      continue;
-    }
-
-    // loop over all the cells in the map
-    for (int i = 0; i < map_data.info.width * map_data.info.height; i++) {
-// convert cell index to coordinates
-int x = i % map_data.info.width;
-int y = i / map_data.info.width;
-double map_x = (x - (double)map_data.info.width/2) * map_data.info.resolution;
-double map_y = (y - (double)map_data.info.height/2) * map_data.info.resolution;
-  // check if the cell is occupied in the map
-  if (map_data.data[i] > 65) {
-    // calculate distance from robot to cell
-    double dist = sqrt(pow(amcl_pose.position.x - map_x, 2) + pow(amcl_pose.position.y - map_y, 2));
-
-    // get range measurement from laser scan data
-    double angle = atan2(map_y - amcl_pose.position.y, map_x - amcl_pose.position.x) - tf2::getYaw(amcl_pose.orientation);
-    double range = scan_data->ranges[angle / scan_data->angle_increment];
-
-    // check if there is a mismatch between the map and the laser data
-    if (range < dist - 0.1) {
-      // log the mismatch
-      RCLCPP_INFO(navigator.get_logger(), "Mismatch found: Map says occupied at (%f, %f), but laser data indicates free space.", map_x, map_y);
-    }
-  }
-}
-
-// wait for next laser scan data
-laser_received = false;
-while (!laser_received && rclcpp::ok()) {
-  rclcpp::spin_some(navigator.get_node_base_interface());
-}
-}
-
-rclcpp::shutdown(); // shutdown ROS
-return 0;
+  // complete here....
+  
+  rclcpp::shutdown(); // shutdown ROS
+  return 0;
 }
