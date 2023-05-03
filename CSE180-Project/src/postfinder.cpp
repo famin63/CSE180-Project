@@ -20,38 +20,7 @@ limitations under the License.
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <std_msgs/msg/float32.hpp>
 
-class FindClosest : public rclcpp::Node 
-{
-  public:
-    FindClosest():Node("find_closest")
-    {
-      pubf = this->create_publisher<std_msgs::msg::Float32>("closest", 1000);
-      sub = this->create_subscription<sensor_msgs::msg::LaserScan>
-            ("scan", 10, std::bind(&FindClosest::processScan, this, std::placeholders::_1));
-      
-      //added this
-      //changed node to this
-      subscription_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
-        "laser_scan", 10, std::bind(&FindClosest::processScan, this, std::placeholders::_1));
-    }
-  private:
-    void processScan(const sensor_msgs::msg::LaserScan::SharedPtr msg) 
-    {
-      std::vector<float>::const_iterator minval = min(msg->ranges.begin(), msg->ranges.end());
-      std_msgs::msg::Float32 msg_to_send;
-      msg_to_send.data = *minval;
-      pubf->publish(msg_to_send); // publish result
 
-      //for loop to output laser scan
-      //added
-      for (size_t i = 0; i < msg->ranges.size(); i++) {
-            RCLCPP_INFO(rclcpp::get_logger("laser_scan"), "Values %d: %f", i, msg->ranges[i]);
-        }
-    }
-    rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr pubf;
-    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr sub;
-    rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr subscription_;
-};
 
 // void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
 //         RCLCPP_INFO(nodeh->get_logger(),"Size of Map: %d", msg->data.size());
