@@ -40,13 +40,19 @@ void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
                 }
             }
         }
-    
-//         uint counter = 0;
-//         for (uint i = 0; i < msg->data.size(); i++) {
-//             if (-1 != msg->data[i]) {
-//                 counter++;
-//             }
-//         }
+        RCLCPP_INFO_STREAM(nodeh->get_logger(), "Size of Changes: " << update_index.size());
+        
+        for (uint i = 0; i < update_index.size(); i++) {
+            int x = update_index % msg->info.width;
+            int y = update_index / msg->info.height;
+            
+            RCLCPP_INFO_STREAM(nodeh->get_logger(), "2D Map: (" << x << "," << y << ")";
+                               
+            x_coordinate = x * msg->info.resolution - 10.0;
+            y_coordinate = y * msg->info.resolution - 10.0;
+                                
+            RCLCPP_INFO_STREAM(nodeh->get_logger(), "COORD. FRAME: (" << x_coordinate << "," << y_coordinate << ")";
+        }
 }
 
 int main(int argc,char **argv) {
