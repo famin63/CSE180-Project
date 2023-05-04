@@ -48,8 +48,8 @@ void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
             
             RCLCPP_INFO_STREAM(nodeh->get_logger(), "2D Map: (" << x << "," << y << ")";
                                
-            x_coordinate = x * msg->info.resolution - 10.0;
-            y_coordinate = y * msg->info.resolution - 10.0;
+            float x_coordinate = x * msg->info.resolution - 10.0;
+            float y_coordinate = y * msg->info.resolution - 10.0;
                                 
             RCLCPP_INFO_STREAM(nodeh->get_logger(), "COORD. FRAME: (" << x_coordinate << "," << y_coordinate << ")";
         }
