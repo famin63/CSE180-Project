@@ -46,8 +46,7 @@ int main(int argc, char **argv) {
           int y = update_index[i] / msg->info.width;
           float x_coordinate = x * msg->info.resolution + msg->info.origin.position.x;
           float y_coordinate = y * msg->info.resolution + msg->info.origin.position.y;
-          RCLCPP_INFO_STREAM(
-            node->get_logger(), "x: %f, y: %f", x, y);
+          RCLCPP_INFO_STREAM(node->get_logger(), "x: %f, y: %f", x, y);
         }
       }
     });
