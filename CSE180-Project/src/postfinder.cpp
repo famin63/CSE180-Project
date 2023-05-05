@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   // first: it is mandatory to initialize the pose of the robot
   bool original = true;
   geometry_msgs::msg::Pose::SharedPtr init = std::make_shared<geometry_msgs::msg::Pose>();
-  nav_msgs::msgs::OccupancyGrid::SharedPtr original_map;
+  nav_msgs::msg::OccupancyGrid::SharedPtr original_map;
 	
   init->position.x = -2;
   init->position.y = -0.5;
