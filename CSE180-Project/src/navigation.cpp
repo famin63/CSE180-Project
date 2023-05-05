@@ -48,7 +48,9 @@ int main(int argc, char **argv) {
 
   // first: it is mandatory to initialize the pose of the robot
   geometry_msgs::msg::Pose::SharedPtr init = std::make_shared<geometry_msgs::msg::Pose>();
-@@ -33,19 +68,47 @@ int main(int argc,char **argv) {
+
+  init->position.x = -2;
+  init->position.y = -0.5;
   init->orientation.w = 1;
   navigator.SetInitialPose(init);
 
