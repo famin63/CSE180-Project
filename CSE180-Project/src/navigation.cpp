@@ -19,7 +19,7 @@ void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
         else {
             for(uint i = 0; i < msg->data.size(); i++){
                 if((int)msg->data[i] - (int)original_map->data[i] > filter){
-                    update_index.push_back(i)
+                    update_index.push_back(i);
                 }
             }
         }
