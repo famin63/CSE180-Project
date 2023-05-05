@@ -1,23 +1,15 @@
+#include <rclcpp/rclcpp.hpp> 
+#include <navigation/navigation.hpp>
+#include <iostream>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <std_msgs/msg/float32.hpp>
-
 nav_msgs::msg::OccupancyGrid::SharedPtr original_map;
 bool original = true;
-
 rclcpp::Node::SharedPtr nodeh;
-
 void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
-        RCLCPP_INFO(nodeh->get_logger(),"Size of Map: %d", msg->data.size());
-        RCLCPP_INFO(nodeh->get_logger(), "Resolution: %f", msg->info.resolution());
-        RCLCPP_INFO(nodeh->get_logger(), "Width: %d", msg->info.width());
-        RCLCPP_INFO(nodeh->get_logger(), "Height: %d", msg->info.height());
         std::vector<int> update_index;
         int filter = 95;
-
-        uint counter = 0;
-        for (uint i = 0; i < msg->data.size(); i++) {
-            if (-1 != msg->data[i]) {
-                counter++;
+    
         if(original) {
             original_map = msg;
             original = false;
@@ -29,7 +21,22 @@ void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
                 }
             }
         }
+        RCLCPP_INFO_STREAM(nodeh->get_logger(), "Size of Changes: " << update_index.size());
+        
+        for (uint i = 0; i < update_index.size(); i++) {
+            int x = update_index % msg->info.width;
+            int y = update_index / msg->info.height;
 
+            RCLCPP_INFO_STREAM(nodeh->get_logger(), "2D Map: (" << x << "," << y << ")";
+
+            x_coordinate = x * msg->info.resolution - 10.0;
+            y_coordinate = y * msg->info.resolution - 10.0;
+            float x_coordinate = x * msg->info.resolution - 10.0;
+            float y_coordinate = y * msg->info.resolution - 10.0;
+
+            RCLCPP_INFO_STREAM(nodeh->get_logger(), "COORD. FRAME: (" << x_coordinate << "," << y_coordinate << ")";
+        }
+}
 int main(int argc,char **argv) {
  
   rclcpp::init(argc,argv); // initialize ROS 
