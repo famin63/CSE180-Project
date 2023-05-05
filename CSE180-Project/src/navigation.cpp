@@ -7,6 +7,7 @@
 nav_msgs::msg::OccupancyGrid::SharedPtr original_map;
 bool original = true;
 rclcpp::Node::SharedPtr nodeh;
+
 void mapCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg){
         std::vector<int> update_index;
         int filter = 95;
@@ -56,31 +57,6 @@ int main(int argc, char **argv) {
   navigator.WaitUntilNav2Active();
 
 
-  // set up subscriber to occupancy grid for post finding
-  rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("post_finder");
-  auto sub = node->create_subscription<nav_msgs::msg::OccupancyGrid>(
-    "global_costmap/costmap", 1000, [&navigator](const nav_msgs::msg::OccupancyGrid::SharedPtr msg) {
-      // search for post and return its position
-      std::vector<int> update_index;
-      int filter = 95;
-      for (uint i = 0; i < msg->data.size(); i++) {
-        if ((int)msg->data[i] - (int)navigator.original_map->data[i] > filter) {
-          update_index.push_back(i);
-        }
-      }
-
-      if (update_index.size() > 0) {
-        for (uint i = 0; i < update_index.size(); i++) {
-          int x = update_index[i] % msg->info.width;
-          int y = update_index[i] / msg->info.width;
-          float x_coordinate = x * msg->info.resolution + msg->info.origin.position.x;
-          float y_coordinate = y * msg->info.resolution + msg->info.origin.position.y;
-          RCLCPP_INFO_STREAM(
-            node->get_logger(), "Post found at (" << x_coordinate << ", " << y_coordinate << ")");
-        }
-      }
-    });
-
   // set up goal pose for robot to explore the environment
   auto goal_pose = std::make_shared<geometry_msgs::msg::Pose>();
   goal_pose->position.x = 2.0;
@@ -93,10 +69,19 @@ int main(int argc, char **argv) {
 
   while (rclcpp.ok()) {}
 
-
-  // execute path
-  navigator.FollowPath(path);
-
+  goal_pos->position.x = 2;
+  goal_pos->position.y = -1;
+  goal_pos->orientation.w = 1;
+  navigator.GoToPose(goal_pos);
+  // move to new pose
+  while ( ! navigator.IsTaskComplete() ) {
+    
+  }
+  // backup of 0.15 m (deafult distance)
+  navigator.Backup();
+  while ( ! navigator.IsTaskComplete() ) {
+    
+  }
   rclcpp::shutdown(); // shutdown ROS
   return 0;
 }
