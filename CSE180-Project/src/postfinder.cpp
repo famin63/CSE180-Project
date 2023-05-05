@@ -23,16 +23,21 @@ int main(int argc, char **argv) {
   // set up subscriber to occupancy grid for post finding
   rclcpp::Node::SharedPtr node = rclcpp::Node::make_shared("post_finder");
   auto sub = node->create_subscription<nav_msgs::msg::OccupancyGrid>(
-    "global_costmap/costmap", 1000, [&navigator](const nav_msgs::msg::OccupancyGrid::SharedPtr msg) {
+    "global_costmap/costmap", 1000, [node, &navigator](const nav_msgs::msg::OccupancyGrid::SharedPtr msg) {
       // search for post and return its position
       std::vector<int> update_index;
-      int filter = 95;
-      for (uint i = 0; i < msg->data.size(); i++) {
-        if ((int)msg->data[i] - (int)navigator.original_map->data[i] > filter) {
-          update_index.push_back(i);
+      int filter = 95;    
+        if(original) {
+            original_map = msg;
+            original = false;
         }
-      }
-
+        else {
+            for(uint i = 0; i < msg->data.size(); i++){
+                if((int)msg->data[i] - (int)original_map->data[i] > filter){
+                    update_index.push_back(i)
+                }
+            }
+        }
       if (update_index.size() > 0) {
         for (uint i = 0; i < update_index.size(); i++) {
           int x = update_index[i] % msg->info.width;
