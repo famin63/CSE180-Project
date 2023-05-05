@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
   goal_pose->orientation.z = 0.707;
 
   // get path to goal pose
-  auto path = navigator.GetPath(goal_pose);
+  //auto path = navigator.GetPath(goal_pose);
 
   while (rclcpp.ok()) {}
 
