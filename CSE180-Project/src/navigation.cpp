@@ -57,9 +57,36 @@ int main(int argc, char **argv) {
   // wait for navigation stack to become operationale
   // wait for navigation stack to become operational
   navigator.WaitUntilNav2Active();
+    navigator.Spin();
+  while ( ! navigator.IsTaskComplete() ) {
+    // busy waiting for task to be completed
+  }
+  geometry_msgs::msg::Pose::SharedPtr goal_pos = std::make_shared<geometry_msgs::msg::Pose>();
+  goal_pos->position.x = 2;
+  goal_pos->position.y = 1;
+  goal_pos->orientation.w = 0.707;
+  goal_pos->orientation.z = 0.707;
+  // move to new pose
+  navigator.GoToPose(goal_pos);
+  while ( ! navigator.IsTaskComplete() ) {
+    
+  }
+  goal_pos->position.x = 2;
+  goal_pos->position.y = -1;
+  goal_pos->orientation.w = 1;
+  navigator.GoToPose(goal_pos);
+  // move to new pose
+  while ( ! navigator.IsTaskComplete() ) {
+    
+  }
+  // backup of 0.15 m (deafult distance)
+  navigator.Backup();
+  while ( ! navigator.IsTaskComplete() ) {
+    
+  }
 
 
-  // set up goal pose for robot to explore the environment
+ /* // set up goal pose for robot to explore the environment
   auto goal_pose = std::make_shared<geometry_msgs::msg::Pose>();
   goal_pose->position.x = 2.0;
   goal_pose->position.y = 1.0;
@@ -83,7 +110,7 @@ int main(int argc, char **argv) {
   navigator.Backup();
   while ( ! navigator.IsTaskComplete() ) {
     
-  }
+  }*/
   rclcpp::shutdown(); // shutdown ROS
   return 0;
 }
