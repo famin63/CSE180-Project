@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
           float x_coordinate = x * msg->info.resolution + msg->info.origin.position.x;
           float y_coordinate = y * msg->info.resolution + msg->info.origin.position.y;
           RCLCPP_INFO_STREAM(
-            node->get_logger(), "Post found at (" << x_coordinate << ", " << y_coordinate << ")");
+            node->get_logger(), "x: %f, y: %f", x, y);
         }
       }
     });
