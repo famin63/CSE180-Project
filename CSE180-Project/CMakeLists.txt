@@ -40,7 +40,7 @@ endif()
 
 add_library(navigator src/navigation.cpp)
 add_executable(testnavigation src/testnavigator.cpp src/navigation.cpp)
-add_executable(testpackage src/testpackage.cpp src/navigation.cpp)
+add_executable(postfinder src/postfinder.cpp src/navigation.cpp)
 
 target_include_directories(navigator
   PUBLIC
@@ -52,7 +52,7 @@ target_include_directories(testnavigation
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
 
-target_include_directories(testpackage
+target_include_directories(postfinder
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
@@ -62,7 +62,7 @@ ament_target_dependencies(navigator rclcpp geometry_msgs lifecycle_msgs rclcpp_a
 ament_export_targets(navigatorlib HAS_LIBRARY_TARGET)
 ament_export_dependencies(rclcpp geometry_msgs lifecycle_msgs rclcpp_action nav2_msgs)
 ament_target_dependencies(testnavigation rclcpp geometry_msgs lifecycle_msgs rclcpp_action nav2_msgs)
-ament_target_dependencies(testpackage rclcpp geometry_msgs lifecycle_msgs rclcpp_action nav2_msgs)
+ament_target_dependencies(postfinder rclcpp geometry_msgs lifecycle_msgs rclcpp_action nav2_msgs)
 
 
 install(
@@ -80,7 +80,7 @@ install(
   )
 
 install(TARGETS testnavigation DESTINATION lib/${PROJECT_NAME})
-install(TARGETS testpackage DESTINATION lib/${PROJECT_NAME})
+install(TARGETS postfinder DESTINATION lib/${PROJECT_NAME})
 
 
 ament_package()
